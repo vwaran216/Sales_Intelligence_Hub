@@ -6,11 +6,11 @@ from database import get_connection
 st.title("📑 Sales Reports & Analytics")
 
 
-# Check login
+# ---------------- LOGIN CHECK ----------------
+
 if not st.session_state.get("logged_in", False):
     st.warning("Please login first from the main page.")
     st.stop()
-
 
 user = st.session_state.get("user")
 
@@ -19,12 +19,11 @@ if user is None:
     st.stop()
 
 
-# Connect to database
+# ---------------- COMPLETE SALES REPORT ----------------
+
 connection = get_connection()
 cursor = connection.cursor(dictionary=True)
 
-
-# Get sales report based on role
 if user["role"] == "Super Admin":
 
     cursor.execute("""
@@ -66,8 +65,8 @@ else:
         ORDER BY cs.sale_id DESC
     """, (user["branch_id"],))
 
-
 sales_data = cursor.fetchall()
+st.dataframe(sales_data)
 
 cursor.close()
 connection.close()
@@ -84,7 +83,6 @@ if sales_data:
         use_container_width=True
     )
 
-    # Summary
     st.subheader("💰 Financial Summary")
 
     col1, col2, col3 = st.columns(3)
@@ -143,7 +141,6 @@ else:
         GROUP BY ps.payment_method
         ORDER BY total_collected DESC
     """, (user["branch_id"],))
-
 
 payment_data = cursor.fetchall()
 
@@ -205,7 +202,6 @@ else:
         LIMIT 3
     """, (user["branch_id"],))
 
-
 top_customers = cursor.fetchall()
 
 cursor.close()
@@ -226,9 +222,6 @@ if top_customers:
 else:
 
     st.info("No customer sales data available.")
-
-
-
 
 
 # ---------------- MONTHLY SALES ANALYSIS ----------------
@@ -265,7 +258,6 @@ else:
         ORDER BY month
     """, (user["branch_id"],))
 
-
 monthly_data = cursor.fetchall()
 
 cursor.close()
@@ -292,8 +284,6 @@ if monthly_data:
 else:
 
     st.info("No monthly sales data available.")
-
-
 
 
 # ---------------- PENDING PAYMENT ANALYSIS ----------------
@@ -342,7 +332,6 @@ else:
         ORDER BY cs.pending_amount DESC
     """, (user["branch_id"],))
 
-
 pending_analysis = cursor.fetchall()
 
 cursor.close()
@@ -364,8 +353,6 @@ if pending_analysis:
 else:
 
     st.success("🎉 No pending payments!")
-
-
 
 
 # ---------------- PRODUCT PERFORMANCE ----------------
@@ -404,7 +391,6 @@ else:
         ORDER BY total_sales DESC
     """, (user["branch_id"],))
 
-
 product_data = cursor.fetchall()
 
 cursor.close()
@@ -432,9 +418,6 @@ else:
     st.info("No product sales data available.")
 
 
-
-
-
 # ---------------- BRANCH REVENUE COMPARISON ----------------
 
 st.subheader("🏢 Branch Revenue Comparison")
@@ -458,8 +441,6 @@ if user["role"] == "Super Admin":
         ORDER BY total_sales DESC
     """)
 
-    branch_revenue = cursor.fetchall()
-
 else:
 
     cursor.execute("""
@@ -476,11 +457,10 @@ else:
         GROUP BY b.branch_id, b.branch_name
     """, (user["branch_id"],))
 
-    branch_revenue = cursor.fetchall()
+branch_revenue = cursor.fetchall()
 
-
-    cursor.close()
-    connection.close()
+cursor.close()
+connection.close()
 
 
 if branch_revenue:
@@ -502,7 +482,6 @@ if branch_revenue:
 else:
 
     st.info("No branch revenue data available.")
-
 
 
 # ---------------- SALES STATUS SUMMARY ----------------
@@ -537,11 +516,11 @@ else:
         ORDER BY status
     """, (user["branch_id"],))
 
+# FIX: fetch status data for BOTH Super Admin and other users
+status_data = cursor.fetchall()
 
-    status_data = cursor.fetchall()
-
-    cursor.close()
-    connection.close()
+cursor.close()
+connection.close()
 
 
 if status_data:
